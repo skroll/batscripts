@@ -3,6 +3,8 @@
 #config {packet patch} {1.0}
 #split 0 1
 
+#var {prompt_ticker_count} {0};
+
 #var {batchar[hp]}       {0};
 #var {batchar[hp_max]}   {0};
 #var {batchar[hp_delta]} {0};
@@ -13,6 +15,20 @@
 #var {batchar[ep_max]}   {0};
 #var {batchar[ep_delta]} {0};
 #var {batchar[cash]}     {0};
+
+#ticker {prompt_ticker}
+{
+	#math prompt_ticker_count {$prompt_ticker_count + 1};
+
+	#if {$prompt_ticker_count >= 8}
+	{
+		#var {batchar[hp_delta]} 0;
+		#var {batchar[sp_delta]} 0;
+		#var {batchar[ep_delta]} 0;
+		#var prompt_ticker_count 0;
+	}
+}
+{1}
 
 #function {colscale}
 {
@@ -32,6 +48,18 @@
 	}
 }
 
+#function {stripnum}
+{
+	#if {"%1" == ""} { #return 0; };
+	#regex {%1} {+%d} { #return &1; } { #return %1; };
+}
+
+#function {getdeltacol}
+{
+	#var delta_val @stripnum{%1};
+	#if {$delta_val > 0} {#return <afa>;} {#return <faa>;};
+}
+
 #function {batprompt}
 {
 	#format time %t {%H:%M};
@@ -40,32 +68,39 @@
 	#var spcol @colscale{$batchar[sp];$batchar[sp_max]};
 	#var epcol @colscale{$batchar[ep];$batchar[ep_max]};
 
-	#if {$batchar[hp_delta] == "0"}
+	#var hp_delta_val @stripnum{$batchar[hp_delta]};
+
+	#if {$hp_delta_val == 0}
 	{
 		#format {prompt1} {<238>hp:%s%+4s<238>/<138>%s} {$hpcol} {$batchar[hp]} {$batchar[hp_max]};
-	}
+	};
+	#else
 	{
-		#if {$batchar[hp_delta] > 0} { #var {hp_deltacol} {<afa>}; } { #var {hp_deltacol} {<faa>}; }
+		#var hp_deltacol @getdeltacol{$batchar[hp_delta]};
 		#format {prompt1} {<238>hp:%s%+4s<238>/<138>%s <238>[%s%s<238>]} {$hpcol} {$batchar[hp]} {$batchar[hp_max]} {$hp_deltacol} {$batchar[hp_delta]};
-	}
+	};
 
-	#if {$batchar[sp_delta] == "0"}
+	#var sp_delta_val @stripnum{$batchar[sp_delta]};
+
+	#if {$sp_delta_val == 0}
 	{
 		#format {prompt2} {<238>sp:%s%+4s<238>/<138>%s} {$spcol} {$batchar[sp]} {$batchar[sp_max]};
 	}
 	{
-		#if {$batchar[sp_delta] > 0} { #var {sp_deltacol} {<afa>}; } { #var {sp_deltacol} {<faa>}; }
+		#var sp_deltacol @getdeltacol{$batchar[sp_delta]};
 		#format {prompt2} {<238>sp:%s%+4s<238>/<138>%s <238>[%s%s<238>]} {$spcol} {$batchar[sp]} {$batchar[sp_max]} {$sp_deltacol} {$batchar[sp_delta]};
-	}
+	};
 
-	#if {$batchar[ep_delta] == "0"}
+	#var ep_delta_val @stripnum{$batchar[ep_delta]};
+
+	#if {$ep_delta_val == 0}
 	{
 		#format {prompt3} {<238>ep:%s%+4s<238>/<138>%s} {$epcol} {$batchar[ep]} {$batchar[ep_max]};
 	}
 	{
-		#if {$batchar[ep_delta] > 0} { #var {ep_deltacol} {<afa>}; } { #var {ep_deltacol} {<faa>}; }
+		#var ep_deltacol @getdeltacol{$batchar[ep_delta]};
 		#format {prompt3} {<238>ep:%s%+4s<238>/<138>%s <238>[%s%s<238>]} {$epcol} {$batchar[ep]} {$batchar[ep_max]} {$ep_deltacol} {$batchar[ep_delta]};
-	}
+	};
 
 	#format {prompt4} {<238>exp:%s%-5s} {<afa>$batchar[exp]};
 
@@ -86,7 +121,25 @@
 }
 {1}
 
-#prompt {^Hp:%1/%2 Sp:%3/%4 Ep:%5/%6 Exp:%7 >$} {$batprompt} {1}
+#act {^hp: %1 (%2) [%3] sp: %4 (%5) [%6] ep: %7 (%8) [%9] cash: %10 [%11] exp: %12 [%13]$}
+{
+	#var {prompt_ticker_count} {0};
+	#var {batchar[hp]}         {%1};
+	#var {batchar[hp_max]}     {%2};
+	#var {batchar[hp_delta]}   {%3};
+	#var {batchar[sp]}         {%4};
+	#var {batchar[sp_max]}     {%5};
+	#var {batchar[sp_delta]}   {%6};
+	#var {batchar[ep]}         {%7};
+	#var {batchar[ep_max]}     {%8};
+	#var {batchar[ep_delta]}   {%9};
+	#var {batchar[exp]}        {%12};
+
+	#var batprompt @batprompt{};
+}
+
+#prompt {^Hp:%1/%2 Sp:%3/%4 Ep:%5/%6 Exp:%7 >$} {$batprompt} {1};
+#prompt {^hp: %1 (%2) [%3] sp: %4 (%5) [%6] ep: %7 (%8) [%9] cash: %10 [%11] exp: %12 [%13]$} {$batprompt} {1};
 
 #session bat bat.org 23
 
