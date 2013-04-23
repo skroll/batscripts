@@ -25,6 +25,7 @@
 		#var {batchar[hp_delta]} 0;
 		#var {batchar[sp_delta]} 0;
 		#var {batchar[ep_delta]} 0;
+		#var {batchar[exp_delta]} 0;
 		#var prompt_ticker_count 0;
 	}
 }
@@ -102,7 +103,15 @@
 		#format {prompt3} {<238>ep:%s%+4s<238>/<138>%s <238>[%s%s<238>]} {$epcol} {$batchar[ep]} {$batchar[ep_max]} {$ep_deltacol} {$batchar[ep_delta]};
 	};
 
-	#format {prompt4} {<238>exp:%s%-5s} {<afa>$batchar[exp]};
+	#var exp_delta_val @stripnum{$batchar[exp_delta]};
+
+	#if {$exp_delta_val == 0}
+	{
+		#format {prompt4} {<238>exp:%s} {<afa>$batchar[exp]};
+	}
+	{
+		#format {prompt4} {<238>exp:%s <238>[%s<238>]} {<afa>$batchar[exp]} {<afa>$batchar[exp_delta]};
+	};
 
 	#return $prompt1   $prompt2   $prompt3   $prompt4
 }
@@ -134,6 +143,7 @@
 	#var {batchar[ep_max]}     {%8};
 	#var {batchar[ep_delta]}   {%9};
 	#var {batchar[exp]}        {%12};
+	#var {batchar[exp_delta]}  {%13};
 
 	#var batprompt @batprompt{};
 }
