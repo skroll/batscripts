@@ -110,7 +110,8 @@
 		#format {prompt4} {<238>exp:%s} {<afa>$batchar[exp]};
 	}
 	{
-		#format {prompt4} {<238>exp:%s <238>[%s<238>]} {<afa>$batchar[exp]} {<afa>$batchar[exp_delta]};
+		#var exp_deltacol @getdeltacol{$batchar[exp_delta]};
+		#format {prompt4} {<238>exp:%s <238>[%s%s<238>]} {<afa>$batchar[exp]} {$exp_deltacol} {$batchar[exp_delta]};
 	};
 
 	#return $prompt1   $prompt2   $prompt3   $prompt4
